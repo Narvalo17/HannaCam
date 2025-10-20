@@ -11,6 +11,28 @@ if (navToggle && nav) {
 // Smooth scroll
 document.documentElement.style.scrollBehavior = 'smooth';
 
+// Highlight current page in nav and ensure correct title usage
+(() => {
+  const links = document.querySelectorAll('.primary-nav a');
+  const current = new URL(window.location.href);
+  const normalizePath = (p) => p.replace(/\\/g,'/');
+  const currentPath = normalizePath(current.pathname.endsWith('/') ? current.pathname + 'index.html' : current.pathname);
+  links.forEach((a) => {
+    const href = a.getAttribute('href');
+    if (!href) return;
+    const resolved = new URL(href, window.location.origin + window.location.pathname);
+    const linkPath = normalizePath(resolved.pathname);
+    const isMatch = linkPath.toLowerCase() === currentPath.toLowerCase();
+    if (isMatch) {
+      a.classList.add('active');
+      a.setAttribute('aria-current', 'page');
+    } else {
+      a.classList.remove('active');
+      a.removeAttribute('aria-current');
+    }
+  });
+})();
+
 // Reveal on scroll
 const revealEls = document.querySelectorAll('[data-reveal]');
 const io = new IntersectionObserver((entries) => {
@@ -116,6 +138,25 @@ tabBtns.forEach(btn => {
 const yearEl = document.getElementById('year');
 if (yearEl) yearEl.textContent = String(new Date().getFullYear());
 
+// RDV: preselect service from query string
+(() => {
+  const params = new URLSearchParams(window.location.search);
+  const prest = params.get('prestation');
+  if (!prest) return;
+  const select = document.getElementById('service');
+  if (!select) return;
+  const normalized = prest.trim();
+  // If option exists, select it, otherwise add and select
+  let opt = Array.from(select.options).find(o => (o.textContent||'').trim().toLowerCase() === normalized.toLowerCase());
+  if (!opt) {
+    opt = document.createElement('option');
+    opt.value = normalized.toLowerCase().replace(/\s+/g,'-');
+    opt.textContent = normalized;
+    select.appendChild(opt);
+  }
+  select.value = opt.value;
+})();
+
 
 // Service side panel (prestations)
 (() => {
@@ -126,6 +167,7 @@ if (yearEl) yearEl.textContent = String(new Date().getFullYear());
   const priceEl = panel.querySelector('.service-duration-price');
   const descEl = panel.querySelector('.service-description');
   const imgEl = panel.querySelector('.service-image');
+  const ctaEl = panel.querySelector('.service-cta');
 
   const openPanel = () => panel.setAttribute('aria-hidden', 'false');
   const closePanel = () => panel.setAttribute('aria-hidden', 'true');
@@ -144,6 +186,10 @@ if (yearEl) yearEl.textContent = String(new Date().getFullYear());
       if (priceEl) priceEl.textContent = priceText || '';
       if (descEl) descEl.textContent = description || '';
       if (imgEl && img) imgEl.setAttribute('src', img);
+      if (ctaEl) {
+        const qp = new URLSearchParams({ prestation: title });
+        ctaEl.setAttribute('href', 'rdv.html?' + qp.toString());
+      }
       openPanel();
     });
   });
