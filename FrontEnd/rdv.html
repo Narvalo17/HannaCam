@@ -40,56 +40,105 @@
             <p>Réservez votre créneau pour une parenthèse de bien-être.</p>
           </header>
 
-          <div class="contact-layout">
-            <form class="contact-form" novalidate data-reveal>
-              <div class="form-row">
-                <div class="form-field">
-                  <label for="name">Nom complet</label>
-                  <input id="name" name="name" type="text" placeholder="Votre nom" required />
-                  <span class="error" aria-live="polite"></span>
+          <div class="booking-layout">
+            <form class="booking-form" data-reveal>
+              <div class="form-step">
+                <h3>1. Informations personnelles</h3>
+                <div class="form-row">
+                  <div class="form-field">
+                    <label for="name">Nom</label>
+                    <input id="name" name="name" type="text" placeholder="Votre nom" required />
+                    <span class="error" aria-live="polite"></span>
+                  </div>
+                  <div class="form-field">
+                    <label for="prenom">Prénom</label>
+                    <input id="prenom" name="prenom" type="text" placeholder="Votre prénom" required />
+                    <span class="error" aria-live="polite"></span>
+                  </div>
                 </div>
-                <div class="form-field">
-                  <label for="email">Email</label>
-                  <input id="email" name="email" type="email" placeholder="vous@email.com" required />
-                  <span class="error" aria-live="polite"></span>
+                <div class="form-row">
+                  <div class="form-field">
+                    <label for="email">Email</label>
+                    <input id="email" name="email" type="email" placeholder="vous@email.com" required />
+                    <span class="error" aria-live="polite"></span>
+                  </div>
+                  <div class="form-field">
+                    <label for="phone">Téléphone</label>
+                    <input id="phone" name="phone" type="tel" placeholder="06 12 34 56 78" required />
+                    <span class="error" aria-live="polite"></span>
+                  </div>
                 </div>
-              </div>
-              <div class="form-row">
-                <div class="form-field">
-                  <label for="phone">Téléphone</label>
-                  <input id="phone" name="phone" type="tel" placeholder="06 12 34 56 78" required />
-                  <span class="error" aria-live="polite"></span>
-                </div>
-                <div class="form-field">
-                  <label for="service">Prestation souhaitée</label>
-                  <select id="service" name="service" required>
-                    <option value="" disabled selected>Choisir…</option>
-                    <option value="visage">Soin du visage</option>
-                    <option value="mains">Beauté des mains</option>
-                    <option value="maquillage">Maquillage</option>
-                  </select>
-                  <span class="error" aria-live="polite"></span>
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-field">
-                  <label for="date">Date souhaitée</label>
-                  <input id="date" name="date" type="date" required />
-                  <span class="error" aria-live="polite"></span>
-                </div>
-                <div class="form-field">
-                  <label for="time">Heure souhaitée</label>
-                  <input id="time" name="time" type="time" required />
-                  <span class="error" aria-live="polite"></span>
+                <div class="form-row">
+                  <div class="form-field">
+                    <label for="service">Prestation souhaitée</label>
+                    <select id="service" name="service" required>
+                      <option value="" disabled selected>Choisir…</option>
+                      <option value="Soins_Visage">Soins Visage</option>
+                      <option value="Soins_Combinés">Soins Combinés</option>
+                      <option value="Cils_Sourcils">Cils Sourcils</option>
+                    </select>
+                    <span class="error" aria-live="polite"></span>
+                  </div>
                 </div>
               </div>
-              <button type="submit" class="btn btn-primary">Envoyer la demande</button>
-              <p class="form-success" role="status" aria-live="polite" hidden>
-                Merci ! Votre demande a bien été envoyée. Nous vous contacterons très vite.
-              </p>
-            </form>
 
-            <aside class="contact-info" data-reveal>
+              <div class="form-step">
+                <h3>2. Choix de la date & heure</h3>
+                <div class="calendar-container">
+                  <div class="calendar-header">
+                    <button class="calendar-nav" id="prevWeek" type="button">‹</button>
+                    <span class="calendar-week"></span>
+                    <button class="calendar-nav" id="nextWeek" type="button">›</button>
+                  </div>
+                  <div class="calendar-grid">
+                    <div class="calendar-day" data-day="lundi">
+                      <div class="day-name">lundi</div>
+                      <div class="day-date"></div>
+                      <div class="time-slots"></div>
+                    </div>
+                    <div class="calendar-day" data-day="mardi">
+                      <div class="day-name">mardi</div>
+                      <div class="day-date"></div>
+                      <div class="time-slots"></div>
+                    </div>
+                    <div class="calendar-day" data-day="mercredi">
+                      <div class="day-name">mercredi</div>
+                      <div class="day-date"></div>
+                      <div class="time-slots"></div>
+                    </div>
+                    <div class="calendar-day" data-day="jeudi">
+                      <div class="day-name">jeudi</div>
+                      <div class="day-date"></div>
+                      <div class="time-slots"></div>
+                    </div>
+                    <div class="calendar-day" data-day="vendredi">
+                      <div class="day-name">vendredi</div>
+                      <div class="day-date"></div>
+                      <div class="time-slots"></div>
+                    </div>
+                    <div class="calendar-day" data-day="samedi">
+                      <div class="day-name">samedi</div>
+                      <div class="day-date"></div>
+                      <div class="time-slots"></div>
+                    </div>
+                    <div class="calendar-day" data-day="dimanche">
+                      <div class="day-name">dimanche</div>
+                      <div class="day-date"></div>
+                      <div class="time-slots"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-step">
+                <button type="submit" class="btn btn-primary">Confirmer le rendez-vous</button>
+                <p class="form-success" role="status" aria-live="polite" hidden>
+                  Merci ! Votre rendez-vous a été confirmé. Nous vous contacterons très vite.
+                </p>
+              </div>
+            </div>
+
+            <aside class="booking-info" data-reveal>
               <div class="info-card">
                 <h3>Horaires</h3>
                 <ul>
