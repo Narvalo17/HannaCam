@@ -117,3 +117,38 @@ const yearEl = document.getElementById('year');
 if (yearEl) yearEl.textContent = String(new Date().getFullYear());
 
 
+// Service side panel (prestations)
+(() => {
+  const panel = document.querySelector('.service-panel');
+  if (!panel) return;
+  const closeBtn = panel.querySelector('.service-panel-close');
+  const titleEl = panel.querySelector('.service-title');
+  const priceEl = panel.querySelector('.service-duration-price');
+  const descEl = panel.querySelector('.service-description');
+  const imgEl = panel.querySelector('.service-image');
+
+  const openPanel = () => panel.setAttribute('aria-hidden', 'false');
+  const closePanel = () => panel.setAttribute('aria-hidden', 'true');
+
+  const cards = document.querySelectorAll('.cards-grid .card');
+  cards.forEach((card) => {
+    card.addEventListener('click', () => {
+      const title = card.querySelector('h3')?.textContent || '';
+      const img = card.querySelector('.card-media img')?.getAttribute('src') || '';
+      const firstP = card.querySelector('.card-body p');
+      const priceText = firstP ? firstP.textContent : '';
+      const paragraphs = Array.from(card.querySelectorAll('.card-body p'));
+      const description = paragraphs.length > 1 ? paragraphs[1].textContent : '';
+
+      if (titleEl) titleEl.textContent = title;
+      if (priceEl) priceEl.textContent = priceText || '';
+      if (descEl) descEl.textContent = description || '';
+      if (imgEl && img) imgEl.setAttribute('src', img);
+      openPanel();
+    });
+  });
+
+  if (closeBtn) closeBtn.addEventListener('click', closePanel);
+  panel.addEventListener('click', (e) => { if (e.target === panel) closePanel(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && panel.getAttribute('aria-hidden') === 'false') closePanel(); });
+})();
