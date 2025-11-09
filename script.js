@@ -68,7 +68,29 @@ if (lightbox && lightboxClose) {
 // Configuration de l'API
 const API_BASE_URL = 'http://localhost:8080';
 
-// Récupérer les rendez-vous existants depuis le backend
+// Helper: format a Date as local ISO with offset (e.g. 2025-10-20T15:00:00+02:00)
+function formatLocalISOWithOffset(date) {
+  const pad = (n) => String(n).padStart(2, '0');
+  const year = date.getFullYear();
+  const month = pad(date.getMonth() + 1);
+  const day = pad(date.getDate());
+  const hours = pad(date.getHours());
+  const minutes = pad(date.getMinutes());
+  const seconds = pad(date.getSeconds());
+  const tzMinutes = -date.getTimezoneOffset(); // minutes offset from UTC (e.g. +120)
+  const sign = tzMinutes >= 0 ? '+' : '-';
+  const absMinutes = Math.abs(tzMinutes);
+  const tzHours = pad(Math.floor(absMinutes / 60));
+  const tzMins = pad(absMinutes % 60);
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${sign}${tzHours}:${tzMins}`;
+}
+
+// Helper: canonical key for a slot using epoch ms (string) to avoid timezone mismatches
+function epochKeyFromDate(d) {
+  return String(d.getTime());
+}
+
+// Récupérer les rendez-vous existants depuis le backend — retourne un Set d'epoch ms (string)
 async function fetchServerBookedSlots() {
   try {
     const res = await fetch(`${API_BASE_URL}/api/rdv/all`);
@@ -81,7 +103,8 @@ async function fetchServerBookedSlots() {
     if (Array.isArray(arr)) {
       arr.forEach(r => {
         if (r && r.rdv) {
-          try { set.add(new Date(r.rdv).toISOString()); } catch (e) { /* ignore */ }
+          const ms = Date.parse(r.rdv); // Date.parse understands ISO with offset
+          if (!isNaN(ms)) set.add(String(ms));
         }
       });
     }
@@ -247,9 +270,9 @@ if (yearEl) yearEl.textContent = String(new Date().getFullYear());
     return slots;
   };
 
-  // updateCalendar now uses only server data (no localStorage locking)
+  // updateCalendar now uses epoch-ms keys for comparisons to avoid timezone shift
   const updateCalendar = async () => {
-    const serverSet = await fetchServerBookedSlots();
+    const serverEpochSet = await fetchServerBookedSlots();
 
     const startOfWeek = new Date(currentWeek);
     
@@ -278,12 +301,15 @@ if (yearEl) yearEl.textContent = String(new Date().getFullYear());
         const slotEl = document.createElement('div');
         slotEl.className = 'time-slot';
         slotEl.textContent = slot;
-        // Désactiver si déjà réservé côté serveur, ou si créneau passé aujourd'hui
-        const iso = new Date(`${dayEl.dataset.date}T${slot}:00`).toISOString();
+        // Build a Date object in local time for this slot
+        // Parse yyyy-mm-dd safely and construct local Date to avoid ISO parsing as UTC
+        const [y, m, d] = dayEl.dataset.date.split('-').map(Number);
+        const [sh, sm] = slot.split(':').map(Number);
+        const slotDate = new Date(y, m - 1, d, sh, sm, 0);
         const now = new Date();
-        const slotDate = new Date(iso);
         const isPast = slotDate < now && dayDate.toDateString() === now.toDateString();
-        if (serverSet.has(iso)) {
+        const slotKey = epochKeyFromDate(slotDate);
+        if (serverEpochSet.has(slotKey)) {
           slotEl.classList.add('disabled');
           slotEl.setAttribute('aria-disabled', 'true');
         } else if (isPast) {
@@ -422,14 +448,16 @@ if (rdvForm) {
       if (!dayISO) throw new Error('Date du jour introuvable');
       
       const [hours, minutes] = timeSlot.split(':');
-      const appointmentDate = new Date(`${dayISO}T${hours.padStart(2,'0')}:${minutes.padStart(2,'0')}:00`);
+      // Construct appointmentDate in local time using numeric constructor to avoid timezone parsing issues
+      const [ay, am, ad] = dayISO.split('-').map(Number);
+      const appointmentDate = new Date(ay, am - 1, ad, Number(hours), Number(minutes), 0);
 
       // Vérifier en backend si le créneau est toujours disponible (server authoritative)
       const serverSet = await fetchServerBookedSlots();
       const isoFull = appointmentDate.toISOString();
-      if (serverSet.has(isoFull)) {
+      const appointmentKey = epochKeyFromDate(appointmentDate);
+      if (serverSet.has(appointmentKey)) {
         if (rdvInlineError) { rdvInlineError.textContent = 'Ce créneau est déjà réservé. Veuillez choisir un autre créneau.'; rdvInlineError.hidden = false; }
-        // Rafraîchir le calendrier pour refléter l'état du serveur
         if (window.hcUpdateCalendar) await window.hcUpdateCalendar();
         return;
       }
@@ -439,7 +467,8 @@ if (rdvForm) {
         prenom: fields.prenom.value,
         mail: fields.email.value,
         telephone: parseInt(fields.phone.value.replace(/\D/g, '')),
-        rdv: appointmentDate.toISOString(),
+        // Send local date/time with explicit offset (correctly preserves the local hour)
+        rdv: formatLocalISOWithOffset(appointmentDate),
         type_Soin: fields.service.value
       };
 

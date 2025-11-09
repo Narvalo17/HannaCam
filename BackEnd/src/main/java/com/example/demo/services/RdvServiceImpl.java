@@ -18,8 +18,21 @@ public class RdvServiceImpl implements RdvService {
 	@Autowired 
 	private RdvRepository rdvRepository;
 	
+	@Autowired
+	private EmailService emailService;
+	
 	public Rdv createRdv(Rdv rdv) {
-		return rdvRepository.save(rdv);
+		Rdv savedRdv = rdvRepository.save(rdv);
+		
+		// Envoyer un email de notification à Hanna
+		try {
+			emailService.sendRdvNotification(savedRdv);
+		} catch (Exception e) {
+			// Log l'erreur mais ne pas bloquer la création du RDV
+			System.err.println("Erreur lors de l'envoi de l'email pour le RDV: " + e.getMessage());
+		}
+		
+		return savedRdv;
 	}
 	
 	@Override
